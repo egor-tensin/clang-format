@@ -1,0 +1,77 @@
+name: clang-format (w/ diff)
+description: clang-format all C/C++ files in the project, and show the diff
+
+inputs:
+  version:
+    description: clang-format version
+    required: false
+  style:
+    description: clang-format -style parameter value
+    required: false
+    default: file
+  exclude:
+    description: ':-separated list of excluded files and directories'
+    required: false
+outputs:
+  diff:
+    description: diff between the actual and the formatted code
+    value: '${{ steps.run.outputs.diff }}'
+
+runs:
+  using: composite
+  steps:
+    - id: run
+      run: |
+        New-Variable version -Value '${{ inputs.version }}' -Option Constant
+        New-Variable style -Value '${{ inputs.style }}' -Option Constant
+        New-Variable exclude -Value '${{ inputs.exclude }}' -Option Constant
+
+        if (Get-Command python3 -ErrorAction SilentlyContinue) {
+            $python = @('python3')
+        } elseif (Get-Command py -ErrorAction SilentlyContinue) {
+            $python = @('py', '-3')
+        } elseif (Get-Command python -ErrorAction SilentlyContinue) {
+            $python = @('python')
+        } else {
+            echo @'
+        ::error ::
+        egor-tensin/clang-format uses a Python script, which requires Python 3.6 or later.
+        We couldn't find a Python installation in this environment.
+        '@
+            exit 1
+        }
+
+        $cmake_common_version = 'v3.2'
+        $script_name = 'project-clang-format.py'
+        $script_path = Join-Path '${{ github.workspace }}' .. $script_name
+        $download_url = "https://raw.githubusercontent.com/egor-tensin/cmake-common/$cmake_common_version/tools/$script_name"
+
+        $ProgressPreference = 'SilentlyContinue'
+        Invoke-WebRequest $download_url -OutFile $script_path
+
+        $clang_format = 'clang-format'
+        if ($version) {
+            $clang_format += "-$version"
+        }
+
+        $exclude_list = $exclude.Split(':', [System.StringSplitOptions]::RemoveEmptyEntries)
+        if ($exclude_list) {
+            $exclude_list = ,'--exclude' + $exclude_list
+        }
+
+        $exe, $args = $python
+        $output = & $exe $args $script_path --clang-format $clang_format --style $style $exclude_list | Out-String
+
+        $output = $output.TrimEnd("`n")
+        $output = $output.TrimEnd("`r")
+        Write-Output $output
+
+        # If anyone thinks this workaround is anything but complete batshit
+        # insanity, they should just fucking kill themselves.
+        # https://github.community/t/set-output-truncates-multiline-strings/16852/3
+        $output = $output.replace('%', '%25')
+        $output = $output.replace("`n", '%0A')
+        $output = $output.replace("`r", '%0D')
+
+        Write-Output "::set-output name=diff::$output"
+      shell: pwsh

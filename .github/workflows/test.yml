@@ -1,0 +1,56 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+  schedule:
+    # Weekly, at 5:45 AM on Friday (somewhat randomly chosen).
+    - cron: '45 5 * * 5'
+  workflow_dispatch:
+
+jobs:
+  old_and_new:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        version: [10, 11]
+        style: [file, Chromium]
+        include:
+          - {style: file, exclude: test/chromium.cpp}
+          - {style: Chromium, exclude: test/file.cpp}
+
+    runs-on: '${{ matrix.os }}'
+
+    name: '${{ matrix.os }} / ${{ matrix.version }} / ${{ matrix.style }}'
+
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: clang-format (success)
+        uses: ./
+        with:
+          version: '${{ matrix.version }}'
+          style: '${{ matrix.style }}'
+          exclude: '${{ matrix.exclude }}'
+
+      - id: diff
+        name: clang-format (fail)
+        uses: ./
+        with:
+          version: '${{ matrix.version }}'
+          style: '${{ matrix.style }}'
+        continue-on-error: true
+
+      - name: Verify diff
+        run: |
+          $output = '${{ steps.diff.outputs.diff }}'
+          $basename = Split-Path '${{ matrix.exclude }}' -Leaf
+          $original  = "$basename (original)"
+          $formatted = "$basename (formatted)"
+          $output.Contains($original)  -or $(throw "Diff should contain: $original")
+          $output.Contains($formatted) -or $(throw "Diff should contain: $formatted")
