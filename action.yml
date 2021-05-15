@@ -75,3 +75,7 @@ runs:
 
         Write-Output "::set-output name=diff::$output"
       shell: pwsh
+
+branding:
+  icon: star
+  color: green
