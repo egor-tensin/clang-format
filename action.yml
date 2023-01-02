@@ -68,7 +68,7 @@ runs:
 
         # If anyone thinks this workaround is anything but complete batshit
         # insanity, they should just fucking kill themselves.
-        # https://github.community/t/set-output-truncates-multiline-strings/16852/3
+        # https://github.com/orgs/community/discussions/26288
         $output = $output.replace('%', '%25')
         $output = $output.replace("`n", '%0A')
         $output = $output.replace("`r", '%0D')
