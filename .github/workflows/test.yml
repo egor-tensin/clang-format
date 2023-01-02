@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        version: [10, 11]
+        version: [13, 14]
         style: [file, Chromium]
         include:
           - {style: file, exclude: test/chromium.cpp}
