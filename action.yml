@@ -73,7 +73,7 @@ runs:
         $output = $output.replace("`n", '%0A')
         $output = $output.replace("`r", '%0D')
 
-        Write-Output "::set-output name=diff::$output"
+        Write-Output "diff=$output" >> $env:GITHUB_OUTPUT
       shell: pwsh
 
 branding:
