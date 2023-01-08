@@ -41,7 +41,7 @@ runs:
             exit 1
         }
 
-        $cmake_common_version = 'v3.2'
+        $cmake_common_version = 'v3.4'
         $script_name = 'project-clang-format.py'
         $script_path = Join-Path '${{ github.workspace }}' .. $script_name
         $download_url = "https://raw.githubusercontent.com/egor-tensin/cmake-common/$cmake_common_version/tools/$script_name"
