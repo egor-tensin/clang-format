@@ -29,7 +29,7 @@ API
 
 | Output | Description
 | ------ | -----------
-| diff   | Diff between the original and the properly formatted files.
+| diff   | Diff between the original and the properly formatted files
 
 License
 -------
