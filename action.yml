@@ -15,7 +15,7 @@ inputs:
 outputs:
   diff:
     description: diff between the actual and the formatted code
-    value: '${{ steps.run.outputs.diff }}'
+    value: ${{ steps.run.outputs.diff }}
 
 runs:
   using: composite
@@ -25,28 +25,33 @@ runs:
         repository: egor-tensin/cmake-common
         ref: v8.0.2
         path: cmake
+        persist-credentials: false
 
     - uses: actions/setup-python@v7
       with:
         python-version: '>=3.11'
 
     - id: run
+      env:
+        WORKSPACE: ${{ github.workspace }}
+        ARG_VERSION: ${{ inputs.version }}
+        ARG_STYLE: ${{ inputs.style }}
+        ARG_EXCLUDE: ${{ inputs.exclude }}
       run: |
-        New-Variable version -Value '${{ inputs.version }}' -Option Constant
-        New-Variable style -Value '${{ inputs.style }}' -Option Constant
-        New-Variable exclude -Value '${{ inputs.exclude }}' -Option Constant
+        $version = $env:VERSION
+        $style = $env:ARG_STYLE
 
         $clang_format = 'clang-format'
         if ($version) {
             $clang_format += "-$version"
         }
 
-        $exclude_list = $exclude.Split(':', [System.StringSplitOptions]::RemoveEmptyEntries)
+        $exclude_list = $env:ARG_EXCLUDE.Split(':', [System.StringSplitOptions]::RemoveEmptyEntries)
         if ($exclude_list) {
             $exclude_list = ,'--exclude' + $exclude_list
         }
 
-        $env:PYTHONPATH = Join-Path '${{ github.workspace }}' 'cmake'
+        $env:PYTHONPATH = Join-Path $env:WORKSPACE cmake
         $output = & python -m project.format --clang-format $clang_format --style $style $exclude_list | Out-String
 
         $output = $output.TrimEnd("`n")
