@@ -20,26 +20,21 @@ outputs:
 runs:
   using: composite
   steps:
+    - uses: actions/checkout@v7
+      with:
+        repository: egor-tensin/cmake-common
+        ref: v8.0.2
+        path: cmake
+
+    - uses: actions/setup-python@v7
+      with:
+        python-version: '>=3.11'
+
     - id: run
       run: |
         New-Variable version -Value '${{ inputs.version }}' -Option Constant
         New-Variable style -Value '${{ inputs.style }}' -Option Constant
         New-Variable exclude -Value '${{ inputs.exclude }}' -Option Constant
-
-        if (Get-Command python3 -ErrorAction SilentlyContinue) {
-            $python = @('python3')
-        } elseif (Get-Command py -ErrorAction SilentlyContinue) {
-            $python = @('py', '-3')
-        } elseif (Get-Command python -ErrorAction SilentlyContinue) {
-            $python = @('python')
-        } else {
-            echo @'
-        ::error ::
-        egor-tensin/clang-format uses a Python script, which requires Python 3.11 or later.
-        We couldn't find a Python installation in this environment.
-        '@
-            exit 1
-        }
 
         $clang_format = 'clang-format'
         if ($version) {
@@ -51,8 +46,8 @@ runs:
             $exclude_list = ,'--exclude' + $exclude_list
         }
 
-        $env:PYTHONPATH = Join-Path '${{ github.action_path }}' 'cmake'
-        $output = & $python -m project.format --clang-format $clang_format --style $style $exclude_list | Out-String
+        $env:PYTHONPATH = Join-Path '${{ github.workspace }}' 'cmake'
+        $output = & python -m project.format --clang-format $clang_format --style $style $exclude_list | Out-String
 
         $output = $output.TrimEnd("`n")
         $output = $output.TrimEnd("`r")
