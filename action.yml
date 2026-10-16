@@ -35,19 +35,11 @@ runs:
         } else {
             echo @'
         ::error ::
-        egor-tensin/clang-format uses a Python script, which requires Python 3.6 or later.
+        egor-tensin/clang-format uses a Python script, which requires Python 3.11 or later.
         We couldn't find a Python installation in this environment.
         '@
             exit 1
         }
-
-        $cmake_common_version = 'v6.1.8'
-        $script_name = 'project-clang-format.py'
-        $script_path = Join-Path '${{ github.workspace }}' .. $script_name
-        $download_url = "https://raw.githubusercontent.com/egor-tensin/cmake-common/$cmake_common_version/tools/$script_name"
-
-        $ProgressPreference = 'SilentlyContinue'
-        Invoke-WebRequest $download_url -OutFile $script_path
 
         $clang_format = 'clang-format'
         if ($version) {
@@ -59,8 +51,8 @@ runs:
             $exclude_list = ,'--exclude' + $exclude_list
         }
 
-        $exe, $args = $python
-        $output = & $exe $args $script_path --clang-format $clang_format --style $style $exclude_list | Out-String
+        $env:PYTHONPATH = Join-Path '${{ github.action_path }}' 'cmake'
+        $output = & $python -m project.format --clang-format $clang_format --style $style $exclude_list | Out-String
 
         $output = $output.TrimEnd("`n")
         $output = $output.TrimEnd("`r")
