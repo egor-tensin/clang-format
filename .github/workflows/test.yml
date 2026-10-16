@@ -13,34 +13,32 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        version: [17, 18]
-        style: [file, Chromium]
+        version:
+          - 17
+          - 18
+        style:
+          - file
+          - Chromium
         include:
           - {style: file, exclude: test/chromium.cpp}
           - {style: Chromium, exclude: test/file.cpp}
-
-    runs-on: ${{ matrix.os }}
-
-    name: ${{ matrix.os }} / ${{ matrix.version }} / ${{ matrix.style }}
-
+    runs-on: ubuntu-latest
+    name: |
+      Version: ${{ matrix.version }} / ${{ matrix.style }}
     defaults:
       run:
         shell: pwsh
-
     steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
           persist-credentials: false
-
       - name: clang-format (success)
         uses: $/
         with:
           version: ${{ matrix.version }}
           style: ${{ matrix.style }}
           exclude: ${{ matrix.exclude }}
-
       - id: diff
         name: clang-format (fail)
         uses: $/
@@ -48,7 +46,6 @@ jobs:
           version: ${{ matrix.version }}
           style: ${{ matrix.style }}
         continue-on-error: true
-
       - name: Verify diff
         env:
           DIFF: ${{ steps.diff.outputs.diff }}
