@@ -38,21 +38,23 @@ runs:
         ARG_STYLE: ${{ inputs.style }}
         ARG_EXCLUDE: ${{ inputs.exclude }}
       run: |
-        $version = $env:ARG_VERSION
-        $style = $env:ARG_STYLE
+        $version   = (Get-ChildItem env:ARG_VERSION).Value
+        $style     = (Get-ChildItem env:ARG_STYLE).Value
+        $exclude   = (Get-ChildItem env:ARG_EXCLUDE).Value
+        $workspace = (Get-ChildItem env:WORKSPACE).Value
 
         $clang_format = 'clang-format'
         if ($version) {
             $clang_format += "-$version"
         }
 
-        $exclude_list = $env:ARG_EXCLUDE.Split(':', [System.StringSplitOptions]::RemoveEmptyEntries)
-        if ($exclude_list) {
-            $exclude_list = ,'--exclude' + $exclude_list
+        $exclude = $exclude.Split(':', [System.StringSplitOptions]::RemoveEmptyEntries)
+        if ($exclude) {
+            $exclude = ,'--exclude' + $exclude
         }
 
-        $env:PYTHONPATH = Join-Path $env:WORKSPACE cmake
-        $output = & python -m project.format --clang-format $clang_format --style $style $exclude_list | Out-String
+        $env:PYTHONPATH = Join-Path $workspace cmake
+        $output = & python -m project.format --clang-format $clang_format --style $style $exclude | Out-String
 
         $output = $output.TrimEnd("`n")
         $output = $output.TrimEnd("`r")
