@@ -38,7 +38,7 @@ runs:
         ARG_STYLE: ${{ inputs.style }}
         ARG_EXCLUDE: ${{ inputs.exclude }}
       run: |
-        $version = $env:VERSION
+        $version = $env:ARG_VERSION
         $style = $env:ARG_STYLE
 
         $clang_format = 'clang-format'
