@@ -33,7 +33,6 @@ runs:
 
     - id: run
       env:
-        WORKSPACE: ${{ github.workspace }}
         ARG_VERSION: ${{ inputs.version }}
         ARG_STYLE: ${{ inputs.style }}
         ARG_EXCLUDE: ${{ inputs.exclude }}
@@ -41,7 +40,7 @@ runs:
         $version   = (Get-ChildItem env:ARG_VERSION).Value
         $style     = (Get-ChildItem env:ARG_STYLE).Value
         $exclude   = (Get-ChildItem env:ARG_EXCLUDE).Value
-        $workspace = (Get-ChildItem env:WORKSPACE).Value
+        $workspace = (Get-ChildItem env:GITHUB_WORKSPACE).Value
 
         $clang_format = 'clang-format'
         if ($version) {
