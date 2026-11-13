@@ -27,8 +27,8 @@ jobs:
     strategy:
       matrix:
         version:
-          - 17
-          - 18
+          - 20
+          - 21
         style:
           - file
           - Chromium
